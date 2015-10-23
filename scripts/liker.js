@@ -15,10 +15,10 @@ setTimeout(function() {
 	process.exit(0)
 },1000*60*3);
 
-function updateUser(username, cookie, lastUpdate) {
+function updateUser(username, cookie, lastLike) {
 	dirtyFacebookAuth.getCredentials(username, cookie, function(err, credentials) {
 		if (err) return next(err)
-
+		console.log('creds',credentials.facebookUserId, credentials.token)
 		var tinder = new Tinder(credentials.facebookUserId, credentials.token)
 
 		function recordAction(params) {
@@ -38,31 +38,31 @@ function updateUser(username, cookie, lastUpdate) {
 
 					console.log('eval',evaluation)
 					if (evaluation.passed) {
-						console.log('Liking is turned off')
-						// tinder.like(match._id, function(err, res, reply) {
+						//console.log('Liking is turned off',match._id)
+						tinder.like(match._id, function(err, res, reply) {
 						// 	console.log('Liked user:', reply)
 							recordAction({ 
 								type: 'like',
 								match: match,
 								score: evaluation.score
 							})
-						// })
+						})
 					} else {
-						// tinder.like(match._id, function(err, res, reply) {
+						tinder.dislike(match._id, function(err, res, reply) {
 						// 	console.log('Liked user:', reply)
 							recordAction({
 								type: 'dislike',
 								match: match,
 								score: evaluation.score
 							})
-						// })					
+						})					
 					}
 				})
 			})
 		}
 
 		function doUpdates() {
-			tinder.getUpdates(1000 * 60 * 60 * 24, function updateCallback(err, updates) {
+			tinder.getUpdates(lastLike, function updateCallback(err, updates) {
 				var matches = updates.matches
 
 			// db.child('users/'+username+'/data').once('value', function(s) {
@@ -90,28 +90,28 @@ function updateUser(username, cookie, lastUpdate) {
 		    	matches.forEach(function(match) {
 		    		if (match.status===0) {
 		    			getMessage(null, function(reply) {
-			    			// tinder.sendMessage(match._id, reply, function() {
+			    			tinder.sendMessage(match._id, reply, function() {
 			    				console.log('OFF - Sent message:',reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
 			    					match: match.person
 			    				})
-			    			// })
+			    			})
 		    			})
 		    		} else if (match.status===2) {
 			    		if (_.last(match.messages).timestamp+1000*60*60>Date.now()) {
 			    			return console.log('Matchs last match was < 1 hour ago, skip')
 			    		}	    			
 		    			getMessage(_.last(match.messages).message, function (reply) {
-			    			//tinder.sendMessage(match._id, reply, function() {
+			    			tinder.sendMessage(match._id, reply, function() {
 			    				console.log('OFF - Sent message:',reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
 									match: match.person
 			    				})
-			    			//})
+			    			})
 		    			})
 		    		}
 		    	})
@@ -135,7 +135,9 @@ db.authWithCustomToken(process.env.TINDER_FIREBASE_TOKEN, function(error, result
 			var users = s.val()
 			console.log('got users')
 			for (var user in users) {
-				updateUser(users[user].name, users[user].cookie, users[user].lastUpdate)
+				//db.child('users/'+user+'/lastLike').set(Date.now(), function() {
+					updateUser(users[user].name, users[user].cookie, users[user].lastLike || 0)
+				//})				
 			}
 		})
 })
