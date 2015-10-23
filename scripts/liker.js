@@ -11,6 +11,10 @@ var Firebase = require("firebase")
 var db = new Firebase("https://tinder-bot.firebaseio.com/")
 var moment = require('moment')
 
+setTimeout(function() {
+	process.exit(0)
+},1000*60*3);
+
 function updateUser(username, cookie) {
 	dirtyFacebookAuth.getCredentials(username, cookie, function(err, credentials) {
 		if (err) return next(err)
