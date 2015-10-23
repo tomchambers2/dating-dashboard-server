@@ -19,7 +19,7 @@ function updateUser(username, cookie) {
 
 		function recordAction(params) {
 			params.timestamp = Date.now()
-			db.child('actions').push(params, function(err) {
+			db.child(username).child('actions').push(params, function(err) {
 				if (err) console.error(err)
 				console.log('success')
 			})

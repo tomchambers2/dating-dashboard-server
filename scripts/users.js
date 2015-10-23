@@ -2,7 +2,7 @@ var Firebase = require("firebase")
 var db = new Firebase("https://tinder-bot.firebaseio.com/")
 
 db.authWithCustomToken(process.env.TINDER_FIREBASE_TOKEN, function(error, result) {
-	db.child('users').child('-K1KeY9TgG8SsfvXM7xD').update({
+	return db.child('users').child('demo').update({
 	name: 'demo', 
 		cookie: 
 
