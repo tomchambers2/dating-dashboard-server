@@ -62,7 +62,7 @@ function updateUser(username, cookie, lastLike) {
 		}
 
 		function doUpdates() {
-			tinder.getUpdates(lastLike, function updateCallback(err, updates) {
+			tinder.getUpdates(Date.now() - lastLike, function updateCallback(err, updates) {
 				var matches = updates.matches
 
 			// db.child('users/'+username+'/data').once('value', function(s) {
