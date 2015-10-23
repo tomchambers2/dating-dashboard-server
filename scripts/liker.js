@@ -15,7 +15,7 @@ setTimeout(function() {
 	process.exit(0)
 },1000*60*3);
 
-function updateUser(username, cookie) {
+function updateUser(username, cookie, lastUpdate) {
 	dirtyFacebookAuth.getCredentials(username, cookie, function(err, credentials) {
 		if (err) return next(err)
 
@@ -62,16 +62,28 @@ function updateUser(username, cookie) {
 		}
 
 		function doUpdates() {
-			tinder.getUpdates(1000 * 60 * 60 * 24 * 14, function updateCallback(err, updates) {
-		    	if (err) return console.error(err)
+			tinder.getUpdates(1000 * 60 * 60 * 24, function updateCallback(err, updates) {
+				var matches = updates.matches
 
-		    	var matches = updates.matches.map(function(match) {
-		    		if (!match.person) return;
-		    		if (match.messages.length === 0) match.status = 0;
+			// db.child('users/'+username+'/data').once('value', function(s) {
+			// 	var updates = s.val()
+
+		 //    	if (err) return console.error(err)
+
+		 //    	var matches = _.values(updates.matches)
+
+				matches = matches.filter(function(match) {
+					if (!match.person) return false
+					return true
+				})
+
+		    	matches = matches.map(function(match) {
+		    		if (!match.person) return false;
+		    		if (!match.messages || match.messages.length === 0) match.status = 0;
 		    		var lastMessage = _.last(match.messages)
 		    		if (lastMessage && lastMessage.from===me) match.status = 1;
 		    		if (lastMessage && lastMessage.to===me) match.status = 2;
-		    		if (match.messages.length >= 6) match.status = 3;
+		    		if (match.messages && match.messages.length >= 6) match.status = 3;
 		    		return match
 		    	})
 
@@ -123,7 +135,7 @@ db.authWithCustomToken(process.env.TINDER_FIREBASE_TOKEN, function(error, result
 			var users = s.val()
 			console.log('got users')
 			for (var user in users) {
-				updateUser(users[user].name, users[user].cookie)
+				updateUser(users[user].name, users[user].cookie, users[user].lastUpdate)
 			}
 		})
 })
