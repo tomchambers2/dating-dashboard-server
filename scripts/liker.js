@@ -71,7 +71,7 @@ function updateUser(username, cookie) {
 		    		var lastMessage = _.last(match.messages)
 		    		if (lastMessage && lastMessage.from===me) match.status = 1;
 		    		if (lastMessage && lastMessage.to===me) match.status = 2;
-		    		//if status is date, leave it alone, highlight in redis?
+		    		if (match.messages.length >= 6) match.status = 3;
 		    		return match
 		    	})
 
