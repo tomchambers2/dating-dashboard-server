@@ -83,7 +83,7 @@ function updateUser(username, cookie) {
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
-			    					match: match
+			    					match: match.person
 			    				})
 			    			// })
 		    			})
@@ -97,7 +97,7 @@ function updateUser(username, cookie) {
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
-									match: match
+									match: match.person
 			    				})
 			    			//})
 		    			})
