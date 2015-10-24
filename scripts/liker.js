@@ -22,8 +22,10 @@ function updateUser(username, cookie, lastLike) {
 
 		function recordAction(params) {
 			params.timestamp = Date.now()
+			console.log('Starting action record...')
 			db.child('users/'+username+'/data/actions').push(params, function(err) {
 				if (err) console.error(err)
+				console.log('...action record complete')
 			})
 			redis.incr('action_total')
 		}
@@ -127,7 +129,7 @@ console.info("Running liker script")
 
 db.authWithCustomToken(process.env.TINDER_FIREBASE_TOKEN, function(error, result) {
 	if (error) return console.error(error)
-		db.child('users').once('value', function(s) {
+		db.child('userList').once('value', function(s) {
 			var users = s.val()
 			for (var user in users) {
 				updateUser(users[user].name, users[user].cookie, users[user].lastLike || 0)				
