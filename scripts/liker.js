@@ -78,14 +78,17 @@ function updateUser(username, cookie, lastLike) {
 		    		var lastMessage = _.last(match.messages)
 		    		if (lastMessage && lastMessage.from===me) match.status = 1;
 		    		if (lastMessage && lastMessage.to===me) match.status = 2;
-		    		if (match.messages && match.messages.length >= 6) match.status = 3;
+		    		//if (match.messages && match.messages.length >= 6) match.status = 3;
+		    		//temp disable 6 message limit
 		    		return match
 		    	})
 
 		    	matches.forEach(function(match) {
 		    		if (match.status===0) {
 		    			getMessage(null, function(reply) {
+		    				console.log('Send message',reply)
 			    			tinder.sendMessage(match._id, reply, function() {
+			    				console.log('Recording message',match.person.name,reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
@@ -98,7 +101,9 @@ function updateUser(username, cookie, lastLike) {
 			    			return console.log('Matchs last match was < 1 hour ago, skip')
 			    		}	    			
 		    			getMessage(_.last(match.messages).message, function (reply) {
+		    				console.log('Send message',reply)
 			    			tinder.sendMessage(match._id, reply, function() {
+			    				console.log('Recording message',match.person.name,reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
