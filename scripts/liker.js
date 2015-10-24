@@ -18,14 +18,12 @@ setTimeout(function() {
 function updateUser(username, cookie, lastLike) {
 	dirtyFacebookAuth.getCredentials(username, cookie, function(err, credentials) {
 		if (err) return next(err)
-		console.log('creds',credentials.facebookUserId, credentials.token)
 		var tinder = new Tinder(credentials.facebookUserId, credentials.token)
 
 		function recordAction(params) {
 			params.timestamp = Date.now()
 			db.child('users/'+username+'/data/actions').push(params, function(err) {
 				if (err) console.error(err)
-				console.log('success')
 			})
 			redis.incr('action_total')
 		}
@@ -35,12 +33,8 @@ function updateUser(username, cookie, lastLike) {
 				if (err) return console.error(err)
 				data.forEach(function(match) {
 					var evaluation = evaluatePerson(match)
-
-					console.log('eval',evaluation)
 					if (evaluation.passed) {
-						//console.log('Liking is turned off',match._id)
 						tinder.like(match._id, function(err, res, reply) {
-						// 	console.log('Liked user:', reply)
 							recordAction({ 
 								type: 'like',
 								match: match,
@@ -49,7 +43,6 @@ function updateUser(username, cookie, lastLike) {
 						})
 					} else {
 						tinder.dislike(match._id, function(err, res, reply) {
-						// 	console.log('Liked user:', reply)
 							recordAction({
 								type: 'dislike',
 								match: match,
@@ -93,7 +86,6 @@ function updateUser(username, cookie, lastLike) {
 		    		if (match.status===0) {
 		    			getMessage(null, function(reply) {
 			    			tinder.sendMessage(match._id, reply, function() {
-			    				console.log('OFF - Sent message:',reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
@@ -107,7 +99,6 @@ function updateUser(username, cookie, lastLike) {
 			    		}	    			
 		    			getMessage(_.last(match.messages).message, function (reply) {
 			    			tinder.sendMessage(match._id, reply, function() {
-			    				console.log('OFF - Sent message:',reply)
 			    				recordAction({
 			    					type: 'message',
 			    					text: reply,
@@ -127,19 +118,14 @@ function updateUser(username, cookie, lastLike) {
 
 var me = '56263e05a2243aa61beac69d';
 
-console.log('run')
+console.info("Running liker script")
 
 db.authWithCustomToken(process.env.TINDER_FIREBASE_TOKEN, function(error, result) {
 	if (error) return console.error(error)
-	console.log('Authenticated firebase')
-
 		db.child('users').once('value', function(s) {
 			var users = s.val()
-			console.log('got users')
 			for (var user in users) {
-				//db.child('users/'+user+'/lastLike').set(Date.now(), function() {
-					updateUser(users[user].name, users[user].cookie, users[user].lastLike || 0)
-				//})				
+				updateUser(users[user].name, users[user].cookie, users[user].lastLike || 0)				
 			}
 		})
 })
